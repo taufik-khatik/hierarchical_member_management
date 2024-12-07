@@ -8,7 +8,7 @@ This project is a **Hierarchical Member Management System** built using **PHP**,
 
 ## Features
 
-![Home Page](https://github.com/taufik-khatik/hierarchical_member_management/blob/main/public/images/home-page-screenshot.png)
+![Home Page](https://github.com/taufik-khatik/hierarchical_member_management/blob/main/home-page-screenshot.png)
 *Screenshot: Home Page*
 
 ### 1. **Dynamic Members Tree**

@@ -34,6 +34,13 @@ This project is a **Hierarchical Member Management System** built using **PHP**,
 
 ---
 
+## Video Demonstration
+
+Here is a demonstration of the project:
+[![Video Demo](https://github.com/taufik-khatik/hierarchical_member_management/blob/main/video-demo.webm)](https://github.com/taufik-khatik/hierarchical_member_management/blob/main/video-demo.webm)
+
+---
+
 ## Project Structure
 
 ### 1. **`index.php`**

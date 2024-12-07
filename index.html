@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Members List</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body class="container-fluid my-3">
+
+    <!-- Header and Add Member Button -->
+    <div class="d-flex mb-3">
+        <h1>Members List</h1>
+        <button id="add-member-btn" class="btn ml-auto btn-primary">+ Add Member</button>
+    </div>
+
+    <!-- Members List -->
+    <ul id="members-list"></ul>
+
+    <!-- Add Member Modal -->
+    <div class="modal" id="add-member-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Add Member</h2>
+                    <button type="button" class="close" id="hide-member-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-member-form">
+                        <div class="form-group">
+                            <label for="parent">Parent:</label>
+                            <select id="parent" name="parent" class="form-control">
+                                <option value="">-- Select Parent --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="name">Name:</label>
+                            <input type="text" id="name" name="name" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-message" class="text-danger mt-2" style="display: none;"></div>
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Bootstrap JavaScript -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Fetch and display members in a tree structure
+            function fetchMembers() {
+                $.ajax({
+                    url: "fetch_members.php",
+                    method: "GET",
+                    dataType: "json",
+                    success: function (response) {
+                        const membersList = $("#members-list");
+                        membersList.empty();
+
+                        response.members.forEach(member => {
+                            const listItem = $("<li>")
+                                .text(member.name)
+                                .attr("data-id", member.id);
+
+                            // Append the item to the list
+                            membersList.append(listItem);
+
+                            // Handle parent-child relationship
+                            if (member.ParentId !== null) {
+                                const parentItem = membersList.find(`li[data-id="${member.ParentId}"]`);
+                                let subList = parentItem.children("ul");
+
+                                if (subList.length === 0) {
+                                    subList = $("<ul>");
+                                    parentItem.append(subList);
+                                }
+
+                                subList.append(listItem);
+                            }
+                        });
+                    },
+                    error: function (xhr) {
+                        console.error("Error fetching members:", xhr.responseText);
+                    }
+                });
+            }
+
+            // Populate the parent dropdown in the Add Member modal
+            function populateParentDropdown() {
+                $.ajax({
+                    url: "fetch_members.php",
+                    method: "GET",
+                    dataType: "json",
+                    success: function (response) {
+                        const dropdown = $("#parent");
+                        dropdown.empty().append('<option value="">-- Select Parent --</option>');
+
+                        response.members.forEach(member => {
+                            dropdown.append(
+                                $("<option>")
+                                    .val(member.id)
+                                    .text(member.name)
+                            );
+                        });
+                    },
+                    error: function (xhr) {
+                        console.error("Error populating dropdown:", xhr.responseText);
+                    }
+                });
+            }
+
+            // Show the Add Member modal and populate the dropdown
+            $("#add-member-btn").on("click", function () {
+                populateParentDropdown();
+                $("#add-member-modal").fadeIn();
+            });
+
+            // Hide the Add Member modal and reset the form
+            $("#hide-member-btn").on("click", function () {
+                $("#add-member-modal").fadeOut();
+                $("#add-member-form")[0].reset();
+                $("#error-message").hide();
+            });
+
+            // Handle Add Member form submission
+            $("#add-member-form").on("submit", function (e) {
+                e.preventDefault();
+
+                const name = $("#name").val().trim();
+                const parent = $("#parent").val();
+
+                // Validate name field
+                if (!/^[a-zA-Z0-9 .\-]+$/.test(name)) {
+                    $("#error-message").text("Please enter a valid name.").show();
+                    return;
+                }
+
+                $.ajax({
+                    url: "add_member.php",
+                    method: "POST",
+                    data: { name, parent },
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.success) {
+                            // Refresh the members list and close the modal
+                            fetchMembers();
+                            $("#add-member-modal").fadeOut();
+                            $("#add-member-form")[0].reset();
+                            $("#error-message").hide();
+                        } else {
+                            console.error("Error adding member:", response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error("Error adding member:", xhr.responseText);
+                    }
+                });
+            });
+
+            // Initial fetch of members list
+            fetchMembers();
+        });
+    </script>
+</body>
+</html>
